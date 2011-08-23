@@ -7,17 +7,17 @@ namespace ObjectFormatting
 {
     public static class ObjectFormatter
     {
-        public static string TokenFormat(string formatString, IDictionary<string, object> tokens)
+        public static string TokenFormat(this string formatString, IDictionary<string, object> tokens)
         {
             return TokenFormat(formatString, null, tokens);
         }
 
-        public static string TokenFormat(string formatString, object source)
+        public static string TokenFormat(this string formatString, object source)
         {
             return TokenFormat(formatString, source, null);
         }
 
-        public static string TokenFormat(string formatString, object source, IDictionary<string, object> tokens)
+        public static string TokenFormat(this string formatString, object source, IDictionary<string, object> tokens)
         {
             var tokenList = new Dictionary<string, IndexValue>();
             var newFormat = new StringBuilder(formatString.Length * 3 / 2);
@@ -61,10 +61,11 @@ namespace ObjectFormatting
                             var token = GetStringSection(format, leftIndex, rightIndex);
                             if (!tokenList.ContainsKey(token))
                             {
-                                tokenList.Add(token, new IndexValue(index++, null));
-
                                 if (source != null)
-                                    tokenList[token].Value = GetPropertyValueFromPath(source, token);
+                                    tokenList.Add(token, new IndexValue(index++,  GetPropertyValueFromPath(source, token)));
+
+                                else
+                                    tokenList.Add(token, new IndexValue(index++,  null));
                             }
                             newFormat.Append(tokenList[token].Index);
 
@@ -79,10 +80,10 @@ namespace ObjectFormatting
             return string.Format(newFormat.ToString(), tokenList.Select(tokenPair => tokenPair.Value.Value).ToArray());
         }
 
-        private class IndexValue
+        private struct IndexValue
         {
-            public int Index { get; private set; }
-            public object Value { get; set; }
+            public int Index;
+            public object Value;
 
             public IndexValue(int index, object value)
             {
